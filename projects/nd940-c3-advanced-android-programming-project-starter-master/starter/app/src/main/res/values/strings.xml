@@ -21,7 +21,7 @@
     <string name="status_label">Status:</string>
     <string name="details_content_description">Close details view</string>
     <string name="download_complete">Your file has been downloaded</string>
-    <string name="download_notification_channel_id">download_channel</string>
+    <string name="download_notification_channel_id">exodia_download_channel</string>
     <string name="file_name_key">fileName</string>
     <string name="status_key">Status</string>
 </resources>

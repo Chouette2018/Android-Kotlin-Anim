@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:motion="http://schemas.android.com/tools">
+
+    <ConstraintSet android:id="@+id/start">
+        <Constraint
+            android:id="@id/tv_file_field"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha="0.0"
+            app:layout_constraintBaseline_toBaselineOf="@id/tv_file_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline2"
+            app:layout_optimizationLevel="barrier" />
+        <Constraint
+            android:id="@id/tv_status_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.0"
+            app:layout_constraintStart_toStartOf="@id/tv_file_field"
+            app:layout_constraintTop_toBottomOf="@id/tv_file_field"
+            android:layout_marginTop="16dp" />
+        <Constraint
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="64dp"
+            android:id="@+id/tv_file_name" />
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/end">
+        <Constraint
+            android:id="@id/tv_file_field"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha="1.0"
+            app:layout_constraintBaseline_toBaselineOf="@id/tv_file_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline2"
+            app:layout_optimizationLevel="barrier" />
+        <Constraint
+            android:id="@id/tv_status_result"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="1.0"
+            app:layout_constraintStart_toStartOf="@id/tv_file_field"
+            app:layout_constraintTop_toBottomOf="@id/tv_file_field"
+            android:layout_marginTop="16dp" />
+        <Constraint
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="64dp"
+            android:id="@+id/tv_file_name" />
+    </ConstraintSet>
+
+    <Transition
+        app:constraintSetEnd="@id/end"
+        app:constraintSetStart="@id/start"
+        app:autoTransition="animateToEnd"
+        app:duration="3000">
+        <KeyFrameSet>
+            <KeyAttribute
+                android:alpha="1.0"
+                android:rotation="-360"
+                app:framePosition="100"
+                app:motionTarget="@id/tv_file_field" />
+            <KeyAttribute
+                android:alpha="1.0"
+                android:rotation="-360"
+                app:framePosition="100"
+                app:motionTarget="@id/tv_status_result" />
+        </KeyFrameSet>
+    </Transition>
+</MotionScene>
