@@ -1,11 +1,12 @@
 package com.udacity
 
-import android.animation.ValueAnimator
+import android.animation.*
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import android.view.animation.Animation
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.content.res.ResourcesCompat
 import kotlin.properties.Delegates
@@ -57,9 +58,11 @@ class LoadingButton @JvmOverloads constructor(
     fun setProgress(newValue:Float){
         synchronized(this) {
             progress = newValue
-
+            Log.e("GDS", "progress $progress")
             if(progress >= 1f){
                 buttonState = ButtonState.Completed
+                contentDescription = "Download"
+                invalidate()
                 progress = 0f
                 isClickable = true
             }
@@ -99,15 +102,59 @@ class LoadingButton @JvmOverloads constructor(
         if(!isClickable) return true
         isClickable = false
 
+        animateClick()
 
-        buttonState = ButtonState.Loading
+        //buttonState = ButtonState.Loading
 
-        contentDescription = "Download in progress"
+        //contentDescription = "Download in progress"
 
-        invalidate()
+        //invalidate()
 
         super.performClick()
 
         return true
+    }
+
+    private fun animateClick(){
+        val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 0.6f)
+        val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.6f)
+        val animator = ObjectAnimator.ofPropertyValuesHolder(
+            this, scaleX, scaleY).apply {
+            setAnimListener(this)
+            repeatCount = 1
+            repeatMode = ObjectAnimator.REVERSE
+            disableViewDuringAnimation(this@LoadingButton)
+            start()
+        }
+    }
+
+    private fun ObjectAnimator.disableViewDuringAnimation(view: View) {
+        addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                view.isEnabled = false
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                view.isEnabled = true
+            }
+        })
+    }
+
+    private fun setAnimListener(animator:ObjectAnimator) {
+        animator.addListener(object: AnimatorListenerAdapter(){
+            override fun onAnimationStart(animation: Animator?) {
+                super.onAnimationStart(animation)
+                buttonState = ButtonState.Clicked
+                contentDescription = "Starting download"
+                invalidate()
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                super.onAnimationEnd(animation)
+                buttonState = ButtonState.Loading
+                contentDescription = "Download in progress"
+                invalidate()
+            }
+        })
     }
 }
