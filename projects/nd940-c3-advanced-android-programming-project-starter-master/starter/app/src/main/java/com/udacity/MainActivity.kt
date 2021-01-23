@@ -24,6 +24,8 @@ import com.udacity.receiver.DownloadReceiver
 import com.udacity.util.DownloadManagerUtil
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.coroutines.*
+import java.lang.Runnable
 
 
 class MainActivity : AppCompatActivity() {
@@ -39,45 +41,59 @@ class MainActivity : AppCompatActivity() {
     private var fileName:String= ""
     private lateinit var downloadObserverHandler: Handler
     private var downloadInProgressValue = 0f //value between 0 and 1
+    private var fileSize = 0L
+    val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private val onDownloadObserved = object : Runnable {
         override fun run() {
             refreshDownloadInfo()
-            downloadObserverHandler.postDelayed(this, 100)
+            downloadObserverHandler.postDelayed(this, 50)
         }
     }
 
     private fun refreshDownloadInfo(){
         if(isDonwloadInProgress()){
             //compute fraction not %
-            downloadInProgressValue = getProgress(downloadID)
+            scope.launch {
+                downloadInProgressValue = getProgress(downloadID)
 
-            custom_button.setProgress(downloadInProgressValue)
+                custom_button.setProgress(downloadInProgressValue)
 
-            if(downloadInProgressValue >= 1f){
-                onDownloadCompleted()
+                if (downloadInProgressValue >= 1f) {
+                    onDownloadCompleted()
+                }
             }
         }
     }
 
-    fun getProgress(donwloadId:Long):Float{
-        val cursor = getDownloadManagerCursor(donwloadId)
-        if (cursor.moveToFirst()) {
-            val currentSizeIndex: Int =
-                cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-            val totalSizeIndex: Int = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-            val currentSize = cursor.getInt(currentSizeIndex)
-            val totalSize = cursor.getInt(totalSizeIndex)
-            Log.e("GDS", "totalSize $totalSize")
-            cursor.close()
-            if (currentSize == -1) {
-                return 0f
-            } else {
-                return (currentSize / totalSize).toFloat()
+    private var currentPortion = 0
+    suspend fun getProgress(donwloadId:Long):Float{
+        var currentSize = 0
+        var totalSize = -1
+
+        withContext(Dispatchers.IO) {
+            val cursor = getDownloadManagerCursor(donwloadId)
+            if (cursor.moveToFirst()) {
+                val currentSizeIndex: Int =
+                    cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                val totalSizeIndex: Int =
+                    cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                currentSize = cursor.getInt(currentSizeIndex)
+                totalSize = cursor.getInt(totalSizeIndex)
+                Log.e("GDS", "totalSize $totalSize")
+                cursor.close()
             }
         }
 
-        return 0f
+        if (currentSize == totalSize) {
+            return 1f
+        }
+
+        currentPortion += 9
+
+        currentPortion = if(currentPortion >= 100) 0 else currentPortion
+
+        return currentPortion/100f
     }
 
     private fun getDownloadManagerCursor(donwloadId:Long): Cursor {
@@ -96,6 +112,8 @@ class MainActivity : AppCompatActivity() {
         downloadID = -1L
         downloadInProgressValue = 0f
         downloadObserverHandler.removeCallbacks(onDownloadObserved)
+        fileSize = 0L
+        currentPortion = 0
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,7 +123,9 @@ class MainActivity : AppCompatActivity() {
         createNotificationChannel()
         downloadObserverHandler = Handler(Looper.getMainLooper())
         custom_button.setOnClickListener {
-            download()
+            scope.launch{
+                download()
+            }
         }
     }
 
@@ -138,7 +158,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun download() {
+    private suspend fun download() {
         if(url.isBlank()){
             Toast.makeText(this, getString(R.string.download_error_hint), Toast.LENGTH_LONG).show()
             custom_button.setProgress(1f)
@@ -166,6 +186,8 @@ class MainActivity : AppCompatActivity() {
                 downloadReceiver!!.downloadId = downloadID
             }
 
+            fileSize = DownloadManagerUtil.getFileSizeOfUrl(url)
+
             downloadObserverHandler.post(onDownloadObserved)
         }
     }
@@ -176,6 +198,7 @@ class MainActivity : AppCompatActivity() {
             unregisterReceiver(downloadReceiver)
             downloadReceiver = null
         }
+        scope.cancel()
     }
 
     fun onRadioButtonClicked(view: View) {
@@ -207,7 +230,5 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val URL =
             "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
-        private const val CHANNEL_ID = "channelId"
     }
-
 }

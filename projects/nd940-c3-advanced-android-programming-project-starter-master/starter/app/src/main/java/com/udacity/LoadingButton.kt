@@ -53,7 +53,7 @@ class LoadingButton @JvmOverloads constructor(
         isClickable = true
     }
 
-    private var progress = 0.5f
+    private var progress = 0.0f
 
     fun setProgress(newValue:Float){
         synchronized(this) {
@@ -66,6 +66,8 @@ class LoadingButton @JvmOverloads constructor(
                 progress = 0f
                 isClickable = true
             }
+
+            invalidate()
         }
     }
 
