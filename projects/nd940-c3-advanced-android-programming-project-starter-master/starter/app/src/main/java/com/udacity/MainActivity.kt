@@ -32,16 +32,11 @@ class MainActivity : AppCompatActivity() {
 
     private var downloadID: Long = -1
 
-    private lateinit var notificationManager: NotificationManager
-    private lateinit var pendingIntent: PendingIntent
-    private lateinit var action: NotificationCompat.Action
-
     private var downloadReceiver:DownloadReceiver? = null
     private var url:String= ""
     private var fileName:String= ""
     private lateinit var downloadObserverHandler: Handler
     private var downloadInProgressValue = 0f //value between 0 and 1
-    private var fileSize = 0L
     val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private val onDownloadObserved = object : Runnable {
@@ -112,7 +107,6 @@ class MainActivity : AppCompatActivity() {
         downloadID = -1L
         downloadInProgressValue = 0f
         downloadObserverHandler.removeCallbacks(onDownloadObserved)
-        fileSize = 0L
         currentPortion = 0
     }
 
@@ -123,9 +117,7 @@ class MainActivity : AppCompatActivity() {
         createNotificationChannel()
         downloadObserverHandler = Handler(Looper.getMainLooper())
         custom_button.setOnClickListener {
-            scope.launch{
-                download()
-            }
+             download()
         }
     }
 
@@ -158,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun download() {
+    private fun download() {
         if(url.isBlank()){
             Toast.makeText(this, getString(R.string.download_error_hint), Toast.LENGTH_LONG).show()
             custom_button.setProgress(1f)
@@ -185,8 +177,6 @@ class MainActivity : AppCompatActivity() {
             }else{
                 downloadReceiver!!.downloadId = downloadID
             }
-
-            fileSize = DownloadManagerUtil.getFileSizeOfUrl(url)
 
             downloadObserverHandler.post(onDownloadObserved)
         }
@@ -225,10 +215,5 @@ class MainActivity : AppCompatActivity() {
                     }
             }
         }
-    }
-
-    companion object {
-        private const val URL =
-            "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
     }
 }
