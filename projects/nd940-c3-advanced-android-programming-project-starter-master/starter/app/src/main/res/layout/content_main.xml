@@ -20,6 +20,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:backgroundActiveColor="@color/colorPrimaryDark"
+        app:backgroundDefaultColor="@color/colorPrimary"
+        app:textActiveColor="@color/colorAccent"
+        app:textDefaultColor="#FFFFFF"
         tools:visibility="visible" />
 
     <RadioGroup
